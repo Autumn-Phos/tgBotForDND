@@ -1,0 +1,1 @@
+-added base for Roll and For DND
