@@ -12,7 +12,7 @@
 * [TECHNOLOGIES INFO](#TECHNOLOGIES-INFO)
 * [UPDATE INFO](#UPDATE-INFO)
 * [FAQ OR HOW TO USE](#FAQ)
-* [CONTACT AND LINKS](#CONTACT-AND-LINKS)
+* [CONTACT AND LINKS](#CONTACT-AND-LINKS) 
 *
 *
 *
@@ -74,11 +74,13 @@ python - telebot, codecs, random, logging, psycopg2, getpass
 
 ## UPDATE INFO
 
--added Users Data Base 
+-added Users auto register and authorization in data base
 
--added Instrument for work with Users Data Base
+-redesigned Instrument for work with Users Data Base
 
--version ((beta)0.3)
+-redesigned method of entering information in the journal
+
+-version ((beta)0.4)
 
 ## FAQ
 
