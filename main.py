@@ -4,41 +4,59 @@ import telebot
 import config
 import markup
 #Импорт встроенных библиотек python
+from getpass import getpass
 import codecs
 import random
-# Импорт библиотеки logging и ее конфигураций
+#Импорт библиотеки logging и ее конфигураций
 import logging
 from logging.handlers import RotatingFileHandler
+#Импорт библиотеки для работы с psql
+import psycopg2
 
-# Настройка формата вывода сообщений в лог файл
+#Настройка формата вывода сообщений в лог файл
 logging.basicConfig(
-    format = '[%(asctime)s] [%(levelname)-8s]: %(message)s',  
+    format = '[%(asctime)s] [%(levelname)s]: %(message)s',  
     datefmt = '%d/%m/%Y %H:%M:%S',
     filename = 'bot For DND\example.log',  
     filemode = 'w',
     level = logging.DEBUG,
     encoding='utf-8'
 )
-# Создание экземпляра logger
+#Создание экземпляра logger
 logger = logging.getLogger(__name__)
-
+#Инициализация базы данных
+def dbForUsers():
+    while True:
+        try:
+            DBpassword = getpass("Введите пароль от базы данных\n")
+            conn = psycopg2.connect(dbname='users', user='postgres', password='{}'.format(DBpassword), host='localhost')
+            logger.info("Выполненно подключение к базе данных" + " пароль (" + "*" * len(DBpassword) + ")")
+            print("Пароль принят (" + "*" * len(DBpassword) + ")")
+            break
+        except:
+            logger.info("Введен неверный пароль (" + DBpassword + ")")
+            print("Введен неверный пароль (", DBpassword, ")")
+    return(conn.cursor())
+#Создание курсора для работы с базой данных
+cursor = dbForUsers()
+#Лист фотографий для случайной подборки
+creatorPhotoList = ["bot For DND\content\photo\_firstPhotoForCreator.png", 
+                        "bot For DND\content\photo\_secondPhotoForCreator.jpg", 
+                        "bot For DND\content\photo\_thirdPhotoForCreator.jpg", 
+                        "bot For DND\content\photo\_fourthPhotoForCreator.png"]
+#Обработка общения с ботом
 try:
     #Инициализируем бота
     bot = telebot.TeleBot(config.TOKEN)
-    #Лист фотографий для случайной подборки
-    creatorPhotoList = ["bot For DND\content\_firstPhotoForCreator.png", 
-                        "bot For DND\content\_secondPhotoForCreator.jpg", 
-                        "bot For DND\content\_thirdPhotoForCreator.jpg", 
-                        "bot For DND\content\_fourthPhotoForCreator.png "]
-    
     #Команда start
     @bot.message_handler(commands=["start"])
     def welcome(message):
         bot.delete_message(message.chat.id, message.message_id - 0)
-        sti=open("bot For DND\content\_milk-inside-a-bag-of-milk_000.webp", "rb")
+        sti=open("bot For DND\content\photo\_milk-inside-a-bag-of-milk_000.webp", "rb")
         bot.send_sticker(message.chat.id, sti)
         bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - MilkChan".format(message.from_user, bot.get_me()),
                         parse_mode="html", reply_markup=markup.startMarkup())
+        bot.send_message(message.chat.id, message.from_user.id)
         logger.info("/start")
     #Команда creator
     @bot.message_handler(commands=["creator"])
@@ -59,7 +77,7 @@ try:
                         "-------------------------------------------------")
         logger.info("/help")
 
-    #Текстовые команды
+    #Обработка сообщений пользователя
     @bot.message_handler(content_types=["text"])
     def ButtonForm(message):
             #Обработка кнопок с главной формы
@@ -111,13 +129,12 @@ try:
                 bot.delete_message(message.chat.id, message.message_id - 0)
                 bot.send_message(message.chat.id,"d20: " + str(random.randint(1,20)))
                 logger.info("'d20'")
+            
             #Если введено значение которого нет в списке
             else:
                 logger.error("Введена несуществующая текстовая команда - '" + message.text + "'")
-
-    if __name__ == '__main__':
-        bot.polling(none_stop=True)
-
-#Если произошла ошибка при обработке кода
+#Если произошла ошибка при общения с ботом
 except Exception:
     logger.error(Exception) 
+if __name__ == '__main__':
+        bot.polling(none_stop=True)

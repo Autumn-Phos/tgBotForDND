@@ -2,8 +2,8 @@
 # <p align="center">DND_HELPER
 
 <h2><a href='https://t.me/assistantDND_bot'>TelegramBOT</a></h2>
-<h2><a href='content\documentation\enDocumentation.html'>en documentation</a></h2>
-<h2><a href='content\documentation\ruDocumentation.html'>ru documentation</a></h2>
+<h2><a href='content\documentation\en\index.html'>en documentation</a></h2>
+<h2><a href='content\documentation\ru\index.html'>ru documentation</a></h2>
 
 ## CONTENTS
 
@@ -68,23 +68,17 @@ the game of DND
 
 ## TECHNOLOGIES INFO
 
-python - telebot, codecs, random, logging
+python - telebot, codecs, random, logging, psycopg2, getpass
+
+<a href='https://www.postgresql.org'>psql(PostgresSQL)</a>
 
 ## UPDATE INFO
 
--added markup.py it contains markup for telegramKeyboard
+-added Users Data Base 
 
--added commands list (help)
+-added Instrument for work with Users Data Base
 
--added card of creator
-
--added log for debug
-
--added error handler
-
--redesigned README file
-
--version ((beta)0.2)
+-version ((beta)0.3)
 
 ## FAQ
 
