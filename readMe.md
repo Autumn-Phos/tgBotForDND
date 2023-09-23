@@ -74,13 +74,17 @@ python - telebot, codecs, random, logging, psycopg2, getpass
 
 ## UPDATE INFO
 
--added Users auto register and authorization in data base
+-added DataBase for characters
 
--redesigned Instrument for work with Users Data Base
+-added DND button form
 
--redesigned method of entering information in the journal
+-added DND character button form
 
--version ((beta)0.4)
+-added DND rooms button form
+
+-added a form for obtaining data about characters
+
+-version ((beta)0.5)
 
 ## FAQ
 

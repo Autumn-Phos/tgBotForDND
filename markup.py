@@ -1,20 +1,35 @@
 import telebot
 from telebot import types
 
-#Главная кнопочная форма
+#Keyboard for start markup
 def startMarkup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("DND", "DND_HK", "Roll")
     return markup
-#Форма для расчета формул DND
+#Keyboard for DND
 def DNDMarkup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("расчет дамага", "расчет дамага", "расчет дамага", "расчет дамага", "расчет дамага", "расчет дамага")
+    markup.row("Мои персонажи", "Мои игры")
     markup.row("back to button form")
     return markup
-#Форма для броска кубиков
+#Keyboard for roll
 def rollMarkup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("d4", "d6", "d8", "d10", "d12", "d16", "d20")
     markup.row("back to button form")
+    return markup
+#Keyboard for characters
+def markupChar(character):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in range(0, len(character)):
+        markup.row(character[i])
+    markup.row("Создать персонажа", "Удалить персонажа")
+    markup.row("back")  
+    return markup
+#Keyboard for rooms
+def markupRooms():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("Комната 1", "Комната 2")
+    markup.row("Создать комнату", "Удалить комнату")
+    markup.row("back")
     return markup
