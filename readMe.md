@@ -74,17 +74,15 @@ python - telebot, codecs, random, logging, psycopg2, getpass
 
 ## UPDATE INFO
 
--added DataBase for characters
+-remove command 'delete'
 
--added DND button form
+-added a feature to search for characters in the database
 
--added DND character button form
+-added universal button (back)
 
--added DND rooms button form
+-added character removal function
 
--added a form for obtaining data about characters
-
--version ((beta)0.5)
+-version ((beta)0.6)
 
 ## FAQ
 
