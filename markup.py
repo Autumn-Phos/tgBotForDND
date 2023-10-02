@@ -27,19 +27,20 @@ def charMarkup(character):
     markup.row("back")  
     return markup
 #Keyboard for rooms
-def roomsMarkup():
+def roomsMarkup(room):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("Комната 1", "Комната 2")
+    for i in range(0, len(room)):
+        markup.row(room[i])
     markup.row("Создать комнату", "Удалить комнату")
     markup.row("back")
     return markup
-
+#Keyboard for delete characters
 def deleteChar(character):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in range(0, len(character)):
         markup.row(character[i])
     markup.row("back")  
     return markup
-
+#Keyboard for delete rooms
 def deleteRooms():
     print

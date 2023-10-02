@@ -1,13 +1,14 @@
-#импорт библиотеки telebot
+#импорт библиотеки telebot и ее конфигураций
 import telebot 
 from telebot import types
+
+from functionForBD import DB #Импорт самописных библиотек
 
 #Импорт файлов конфигурации
 import config
 import markup
 
 #Импорт встроенных библиотек python
-from getpass import getpass
 import codecs
 import random
 
@@ -27,17 +28,9 @@ logging.basicConfig( #Настройка формата вывода сообщ�
 )
 logger = logging.getLogger(__name__) #Создание экземпляра logger
 
-while True: #Инициализация базы данных
-    try:
-        DBpassword = getpass("Введите пароль от базы данных\n")
-        conn = psycopg2.connect(dbname='users', user='postgres', password='{}'.format(DBpassword), host='localhost')
-        logger.info("Выполненно подключение к базе данных" + " пароль (" + "*" * len(DBpassword) + ")")
-        print("Пароль принят (" + "*" * len(DBpassword) + ")")
-        break
-    except:
-        logger.info("Введен неверный пароль (" + DBpassword + ")")
-        print("Введен неверный пароль (", DBpassword, ")")
-cursor = (conn.cursor()) #Создание курсора для работы с базой данных
+conn = psycopg2.connect(dbname='users', user='postgres', password=config.DBpassword, host='localhost') #Подключение к базе данных
+logger.info("Выполненно подключение к базе данных")
+cursor = (conn.cursor()) #Создание экземпляра cursor
 
 #Лист фотографий для случайной подборки
 creatorPhotoList = ["bot For DND\content\photo\_firstPhotoForCreator.png", 
@@ -45,8 +38,7 @@ creatorPhotoList = ["bot For DND\content\photo\_firstPhotoForCreator.png",
                         "bot For DND\content\photo\_thirdPhotoForCreator.jpg", 
                         "bot For DND\content\photo\_fourthPhotoForCreator.png"]
 
-try: #Обработка собщений ботом
-    hierarchyButForm = ['start']
+try: #Обработка сообщений ботом
     bot = telebot.TeleBot(config.TOKEN) #Инициализируем бота
     
     @bot.message_handler(commands=["start"]) #Команда start
@@ -55,7 +47,7 @@ try: #Обработка собщений ботом
         sti=open("bot For DND\content\photo\_milk-inside-a-bag-of-milk_000.webp", "rb")
         bot.send_sticker(message.chat.id, sti)
         bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - MilkChan".format(message.from_user, bot.get_me()),
-                        parse_mode="html", reply_markup=markup.startMarkup())
+                        parse_mode="html", reply_markup=markup.startMarkup()) #Сообщение приветствие
         logger.info("/start [message - %s] [user_id - %s]",message.text, message.from_user.id)
         cursor.execute("SELECT exists(SELECT 1 FROM users WHERE user_id = %s);", [message.from_user.id]) #Проверяем нету ли id пользователя в базе данных
         exists = bool(cursor.fetchone()[0])  #Получаем результат запроса
@@ -65,7 +57,9 @@ try: #Обработка собщений ботом
             cursor.execute("INSERT INTO users(user_id, username) VALUES (%s, %s);", [message.from_user.id, message.from_user.username])  #Пользователь регестрируется (автоматически)
             conn.commit() #Комит в базу данных
             logger.info("Пользователь успешно зарегистрирован [user_id - %s] [username - %s]", message.from_user.id, message.from_user.username)  #Пользователь регестрируется (автоматически) (отчет в логи)
-        
+        cursor.execute("UPDATE users SET button_hierarchy = 'start' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+        conn.commit() #Комит в базу данных
+
     @bot.message_handler(commands=["creator"]) #Команда creator
     def creatorCard(message):
         bot.delete_message(message.chat.id, message.message_id - 0)
@@ -77,28 +71,25 @@ try: #Обработка собщений ботом
     @bot.message_handler(commands=["help"]) #Команда help
     def helpCommandsList(message):
         bot.delete_message(message.chat.id, message.message_id - 0)
-        #bot.send_message(message.chat.id, "Обязательно при каждом использовании бота пропишите заново /start, "
-        #                 "чтобы автоматически пройти авторизацию, или если вы не разу не "
-        #                 "пользовались ботом то пройти автоматическую регистрацию")
-        bot.send_message(message.chat.id, "###Список всех доступных комманд###\n"
+        bot.send_message(message.chat.id, "-Список всех доступных комманд-\n"
                         "/start - Приветствие\n"
                         "/creator - Карточка создателя бота\n"
                         "/help - Список команд\n"
-                        "#################INFO#################\n"
-                        "Если не работает какая либо кнопка то пропишите заново /start"
-                        "##################################")
+                        "---INFO---\n"
+                        "Если не работает какая либо кнопка то пропишите заново /start\n"
+                        "------")
         logger.info("/help [message - %s] [user_id - %s]",message.text, message.from_user.id)
 
     @bot.message_handler(content_types=["text"]) #Обработка сообщений пользователя
     def ButtonForm(message):
-            global hierarchyButForm
             #Обработка кнопок с главной формы
             if message.text == "DND": #Кнопочная форма для игры в DND
                 bot.delete_message(message.chat.id, message.message_id - 0)
                 bot.send_message(message.chat.id, "---DND Menu---", 
                                 reply_markup=markup.DNDMarkup())
                 logger.info("'DND' [message - %s] [user_id - %s]",message.text, message.from_user.id)
-                hierarchyButForm = ['start', 'DND']
+                cursor.execute("UPDATE users SET button_hierarchy = 'start, DND' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+                conn.commit() #Комит в базу данных
             elif message.text == "DND_HK": #Кнопочная форма для игры в DND Hollow Knight
                 bot.delete_message(message.chat.id, message.message_id - 0)
                 bot.send_message(message.chat.id, "We have nothing for it")
@@ -108,22 +99,24 @@ try: #Обработка собщений ботом
                 bot.send_message(message.chat.id, "---Roll Menu---",
                                 reply_markup=markup.rollMarkup())
                 logger.info("'Roll' [message - %s] [user_id - %s]",message.text, message.from_user.id)
-                hierarchyButForm = ['start', 'Roll']
+                cursor.execute("UPDATE users SET button_hierarchy = 'start, Roll' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+                conn.commit() #Комит в базу данных
             elif message.text == "back": #Кнопока назад (back)
                 bot.delete_message(message.chat.id, message.message_id - 0)
-                if hierarchyButForm[len(hierarchyButForm)-1] == 'DND' or hierarchyButForm[len(hierarchyButForm)-1] == 'Roll': #Переход на startMarkup
+                buttonHierarchy = DB.hierarchy.taking_from_DB(message.from_user.id, cursor)
+                if buttonHierarchy[len(buttonHierarchy)-1] == 'DND' or buttonHierarchy[len(buttonHierarchy)-1] == 'Roll': #Переход на startMarkup
                     bot.send_message(message.chat.id, "ВЫПОЛНЕНИЕ КОМАНДЫ - 'back'", 
                                     reply_markup=markup.startMarkup())
-                    hierarchyButForm.pop(len(hierarchyButForm)-1)
-                elif hierarchyButForm[len(hierarchyButForm)-1] == 'Мои персонажи' or hierarchyButForm[len(hierarchyButForm)-1] == 'Мои игры': #Переход на DNDMarkup
+                    DB.hierarchy.changing_in_DB(message.from_user.id, buttonHierarchy, cursor, conn)
+                elif buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Мои персонажи' or buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Мои игры': #Переход на DNDMarkup
                     bot.send_message(message.chat.id, "ВЫПОЛНЕНИЕ КОМАНДЫ - 'back'", 
                                     reply_markup=markup.DNDMarkup())
-                    hierarchyButForm.pop(len(hierarchyButForm)-1)
-                elif hierarchyButForm[len(hierarchyButForm)-1] == 'Удалить персонажа': #Переход на charMarkup
+                    DB.hierarchy.changing_in_DB(message.from_user.id, buttonHierarchy, cursor, conn)
+                elif buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Удалить персонажа': #Переход на charMarkup
                     bot.send_message(message.chat.id, "ВЫПОЛНЕНИЕ КОМАНДЫ - 'back'", 
-                                    reply_markup=markup.charMarkup(character_finder(message.from_user.id)))
-                    hierarchyButForm.pop(len(hierarchyButForm)-1)
-                logger.info("'back' [hierarchy - %s] [message - %s] [user_id - %s]", hierarchyButForm,message.text, message.from_user.id)
+                                    reply_markup=markup.charMarkup(DB.character.finder(message.from_user.id, cursor)))
+                    DB.hierarchy.changing_in_DB(message.from_user.id, buttonHierarchy, cursor, conn)
+                logger.info("'back' [oldHierarchy - %s] [message - %s] [user_id - %s]", buttonHierarchy,message.text, message.from_user.id)
             #Обработка кнопок с Roll формы
             elif message.text == "d4": #Бросок куда d4
                 bot.delete_message(message.chat.id, message.message_id - 0)
@@ -156,63 +149,46 @@ try: #Обработка собщений ботом
             #Обработка кнопок с DND формы
             elif message.text == "Мои персонажи": #Персонажи игрока
                 bot.delete_message(message.chat.id, message.message_id - 0)
-                bot.send_message(message.chat.id,"---characters---", reply_markup=markup.charMarkup(character_finder(message.from_user.id)))
+                bot.send_message(message.chat.id,"---characters---", reply_markup=markup.charMarkup(DB.character.finder(message.from_user.id, cursor)))
                 logger.info("'Мои персонажи' [message - %s] [user_id - %s]",message.text, message.from_user.id)
-                hierarchyButForm = ['start', 'DND', 'Мои персонажи']
+                cursor.execute("UPDATE users SET button_hierarchy = 'start, DND, Мои_персонажи' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+                conn.commit() #Комит в базу данных
             elif message.text == "Мои игры": #Комнаты созданные игроком и в которых он состоит
                 bot.delete_message(message.chat.id, message.message_id - 0)
-                bot.send_message(message.chat.id,"---rooms---", reply_markup=markup.roomsMarkup())
+                bot.send_message(message.chat.id,"---rooms---", reply_markup=markup.roomsMarkup(DB.room.finder(message.from_user.id, cursor)))
                 logger.info("'Мои игры' [message - %s] [user_id - %s]",message.text, message.from_user.id)
-                hierarchyButForm = ['start', 'DND', 'Мои игры']
+                cursor.execute("UPDATE users SET button_hierarchy = 'start, DND, Мои_игры' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+                conn.commit() #Комит в базу данных
             elif message.text == "Удалить персонажа": #Удаление персонажей
                 bot.delete_message(message.chat.id, message.message_id - 0)
-                bot.send_message(message.chat.id,"---delete character---", reply_markup=markup.deleteChar(character_finder(message.from_user.id)))
+                bot.send_message(message.chat.id,"---delete character---", reply_markup=markup.deleteChar(DB.character.finder(message.from_user.id, cursor)))
                 logger.info("'Удалить персонажа' [message - %s] [user_id - %s]",message.text, message.from_user.id)
-                hierarchyButForm = ['start', 'DND', 'Мои персонажи', 'Удалить персонажа']
+                cursor.execute("UPDATE users SET button_hierarchy = 'start, DND, Мои_персонажи, Удалить_персонажа' WHERE user_id = %s;", [message.from_user.id]) #Записываем на какой кнопочной форме пользователь
+                conn.commit() #Комит в базу данных
             else: #Если введено значение которого нет в списке
                 try: #Если это имя персонажа
                     #Распаковка данных из базы данных
-                    if hierarchyButForm[len(hierarchyButForm)-1] == 'Удалить персонажа': #Проверка действия совершаемового игроком
-                        character = delete_character_finder_with_name(message.text, message.from_user.id) #Удаление персонажа
+                    buttonHierarchy = DB.hierarchy.taking_from_DB(message.from_user.id, cursor)
+                    if buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Удалить персонажа': #Проверка действия совершаемового игроком
+                        character = DB.character.delete_finder_with_name(message.text, message.from_user.id, cursor, conn) #Удаление персонажа
                         if character != '': #Если удалился оповещение об этом
-                            bot.send_message(message.chat.id, character + " - удален", reply_markup=markup.deleteChar(character_finder(message.from_user.id))) #Обновление клавиатуры после удаления персонажа
+                            bot.send_message(message.chat.id, character + " - удален", reply_markup=markup.deleteChar(DB.character.finder(message.from_user.id))) #Обновление клавиатуры после удаления персонажа
                             logger.info("'Был удален персонаж - %s' [message - %s] [user_id - %s]",character, message.text, message.from_user.id) 
                         else:
                             logger.error("Введена несуществующая текстовая команда [message - %s] [user_id - %s]", message.text, message.from_user.id)
-                    else:
-                        bot.send_message(message.chat.id, character_finder_with_name(message.text, message.from_user.id))
+                    elif buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Мои персонажи':
+                        bot.send_message(message.chat.id, DB.character.finder_with_name(message.text, message.from_user.id, cursor))
                         bot.delete_message(message.chat.id, message.message_id - 0)
                         logger.info("'a character search engine was used' [message - %s] [user_id - %s]",message.text, message.from_user.id)
+                    elif buttonHierarchy[len(buttonHierarchy)-1].replace('_', ' ') == 'Мои игры':
+                        bot.send_message(message.chat.id, DB.room.finder_with_name(message.text, message.from_user.id, cursor))
+                        bot.delete_message(message.chat.id, message.message_id - 0)
+                        logger.info("'a room search engine was used' [message - %s] [user_id - %s]",message.text, message.from_user.id)
                 except:
                     logger.error("Введена несуществующая текстовая команда [message - %s] [user_id - %s]", message.text, message.from_user.id)
-    
-    def delete_character_finder_with_name(name, id): #Удаление персонажа по имени персонажа
-        cursor.execute("SELECT * FROM characters WHERE char_name = %s AND user_id = %s;", [name, id])
-        character = ''
-        for row in cursor:
-            character = str(row[2])
-        cursor.execute("DELETE FROM characters WHERE char_name = %s AND user_id = %s;", [name, id])
-        conn.commit() #Комит в базу данных
-        return character
-    def character_finder_with_name(name, id): #Поиск персонажей пользователя по имени персонажа
-        cursor.execute("SELECT * FROM characters WHERE char_name = %s AND user_id = %s;", [name, id])
-        character = ''
-        for row in cursor:
-            character = str(row)
-        return character
-    def character_finder(id): #Поиск персонажей пользователя
-        character = []
-        try:
-            #Распаковка данных из базы данных
-            cursor.execute("SELECT char_name FROM characters WHERE user_id = %s;", [id])
-            for row in cursor:
-                character.append(row[0]+' ')
-        except:
-            character.append('пусто')
-        return character
-
 except Exception: #Если произошла ошибка при общения с ботом
     logger.error(Exception) 
 
+#Зациклевание бота
 if __name__ == '__main__':
         bot.polling(none_stop=True)

@@ -74,15 +74,13 @@ python - telebot, codecs, random, logging, psycopg2, getpass
 
 ## UPDATE INFO
 
--remove command 'delete'
+-changed universal button (back)
 
--added a feature to search for characters in the database
+-added library for work with data base
 
--added universal button (back)
+-in development, the creation of character profiles
 
--added character removal function
-
--version ((beta)0.6)
+-version ((beta)0.7)
 
 ## FAQ
 
