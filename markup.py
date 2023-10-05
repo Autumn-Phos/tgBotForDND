@@ -44,3 +44,9 @@ def deleteChar(character):
 #Keyboard for delete rooms
 def deleteRooms():
     print
+#Keyboard for add character
+def createChar():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("None")  
+    markup.row("back")  
+    return markup
