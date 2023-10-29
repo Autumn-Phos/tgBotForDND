@@ -1,4 +1,3 @@
-
 # <p align="center">DND_HELPER
 
 <h2><a href='https://t.me/assistantDND_bot'>TelegramBOT</a></h2>
@@ -69,25 +68,21 @@ the game of DND
 
 ## TECHNOLOGIES INFO
 
-python - telebot, codecs, random, logging, psycopg2, getpass
+python - telebot, random, logging, psycopg2, threading, sys, os
 
 <a href='https://www.postgresql.org'>psql(PostgresSQL)</a>
 
 ## UPDATE INFO
 
--remove documentation (html) from git
+-back button has been redesigned
 
--added rickroll in link to documentation
+-added background thread for bot
 
--added documentation in README.md
+-added wrapper for logger func
 
--created its own library for the project
+-added room system and ability to connect
 
--added new markup for create character (createChar)
-
--added command add in funcForBD
-
--version ((beta)0.8)
+-version ((beta)0.9)
 
 ## FAQ
 

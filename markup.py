@@ -21,7 +21,7 @@ def rollMarkup():
 #Keyboard for characters
 def charMarkup(character):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in range(0, len(character)):
+    for i in range(len(character)):
         markup.row(character[i])
     markup.row("Создать персонажа", "Удалить персонажа")
     markup.row("back")  
@@ -29,24 +29,42 @@ def charMarkup(character):
 #Keyboard for rooms
 def roomsMarkup(room):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in range(0, len(room)):
+    for i in range(len(room)):
         markup.row(room[i])
+    markup.row("Присоединиться к комнате", "Выйти из комнаты")
     markup.row("Создать комнату", "Удалить комнату")
     markup.row("back")
     return markup
 #Keyboard for delete characters
 def deleteChar(character):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in range(0, len(character)):
+    for i in range(len(character)):
         markup.row(character[i])
     markup.row("back")  
     return markup
 #Keyboard for delete rooms
-def deleteRooms():
-    print
+def deleteRooms(rooms):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in range(len(rooms)):
+        markup.row(rooms[i])
+    markup.row("back")  
+    return markup
+#Keyboard for create rooms
+def createRooms():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row("None")  
+    markup.row("back")  
+    return markup
 #Keyboard for add character
 def createChar():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("None")  
+    markup.row("back")  
+    return markup
+#Keyboard for disconnect of other room
+def disconnectOfRoom(rooms):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in range(len(rooms)):
+        markup.row(rooms[i])  
     markup.row("back")  
     return markup
